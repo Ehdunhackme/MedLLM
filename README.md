@@ -14,7 +14,7 @@ MedLLM is a chatbot built using Streamlit and JamAI that allows users to interac
 - Streamlit
 - JamAI API Key and Project ID
 
-## Installation
+## Installation (To run Locally)
 
 1. Clone the repository:
    ```bash
