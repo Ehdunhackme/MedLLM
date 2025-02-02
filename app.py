@@ -123,7 +123,7 @@ def main():
 
     # Sidebar for configuration
     with st.sidebar:
-        st.image("additional_resources/Jamai-Long-Black-Main.icuEAbYB.svg", width=800, height=400)
+        st.image("additional_resources/Jamai-Long-Black-Main.icuEAbYB.svg")
         st.markdown(
             """
             <a href="https://cloud.jamaibase.com/" style="
