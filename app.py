@@ -169,6 +169,22 @@ def main():
                 knowledge_table_id = create_knowledge_base(jamai, file_upload)
                 if knowledge_table_id:
                     create_chat_table(jamai, knowledge_table_id)
+        
+        with st.expander("Advanced Settings"):
+            model_options = [
+                            'ellm/Qwen/Qwen2-7B-Instruct', 'ellm/Qwen/Qwen2-72B-Instruct', 
+                            'ellm/meta-llama/Llama-3-8B-Instruct', 'ellm/meta-llama/Llama-3-70B-Instruct', 
+                            'ellm/meta-llama/Llama-3.1-8B-Instruct', 'ellm/meta-llama/Llama-3.1-70B-Instruct',
+                            'ellm/microsoft/Phi-3-mini-128k-Instruct-Int4'
+                            'ellm/microsoft/Phi-3-medium-128k-Instruct-Int4',
+                            ]
+            st.session_state.model = st.selectbox("Model", options=model_options, index=0, disabled=st.session_state.knowledge_base_exist)
+            st.session_state.k = st.slider("k", value=2, min_value=1, max_value=30, step=1, disabled=st.session_state.knowledge_base_exist)
+            st.session_state.max_tokens = st.slider("max tokens", value=496, min_value=96, max_value=960, step=8, disabled=st.session_state.knowledge_base_exist)
+            temperature_options = [str(i/10) for i in range(1,11)]
+            st.session_state.temperature = st.selectbox("temperature", options=temperature_options, format_func=lambda x: float(x), disabled=st.session_state.knowledge_base_exist)
+            top_p_options = [str(i/10) for i in range(1,11)]
+            st.session_state.top_p = st.selectbox("top p", options=top_p_options, format_func=lambda x: float(x), disabled=st.session_state.knowledge_base_exist)
 
     # Chat input for user questions
     if question := st.chat_input("Ask a medical question, describe symptoms, or query your report..."):
