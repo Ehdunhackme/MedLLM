@@ -1,18 +1,3 @@
-import subprocess
-import sys
-
-# Install jamaibase before importing it
-def install_jamaibase():
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "jamaibase"])
-
-# Install Jamaibase if not already installed
-try:
-    import jamaibase
-except ImportError:
-    install_jamaibase()
-    import jamaibase
-
-
 import streamlit as st
 from jamaibase import JamAI, protocol as p
 import time
