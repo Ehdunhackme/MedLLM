@@ -1,6 +1,6 @@
-# MedLLM: LLM Chatbot for Medical Reports Analysis
+# MedLLM: LLM Chatbot for Medical Reports Analysis 
 
-## By Dun Li Chan 
+**Author:** Dun Li Chan
 
 MedLLM is a chatbot built using Streamlit and JamAI that allows users to interact with uploaded medical PDFs, querying and analyzing their medical report.
 
