@@ -145,7 +145,7 @@ def main():
             unsafe_allow_html=True
         )
 
-        st.header("🔧 Configuration")
+        st.header("🔧 Settings")
         api_key = st.text_input('🔑 JamAI API KEY', type='password', value=st.session_state.api_key)
         project_id = st.text_input('📌 Project ID', value=st.session_state.project_id)
 
