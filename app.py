@@ -9,7 +9,7 @@ def initialize_session_state():
         "unique_time": time.time(),
         "knowledge_base_exist": False,
         "chat_history": [],
-        "api_key": "",
+        "token": "",  # Change to 'token' instead of 'api_key'
         "project_id": "",
         "model": "ellm/Qwen/Qwen2-7B-Instruct",
         "k": 5,
@@ -25,7 +25,7 @@ def initialize_session_state():
 
 # Function to clear credentials
 def clear_credentials():
-    st.session_state.api_key = ""
+    st.session_state.token = ""  # Clear token instead of api_key
     st.session_state.project_id = ""
     st.session_state.unique_time = time.time()  # reset the unique time
     st.session_state.logged_in = False  # reset logged in status
@@ -40,7 +40,7 @@ def refine_question(question):
 
 # Function to ask a question using JamAI chat table
 def ask_question(question):
-    jamai = JamAI(api_key=st.session_state.api_key, project_id=st.session_state.project_id)
+    jamai = JamAI(api_key=st.session_state.token, project_id=st.session_state.project_id)  # Use token
     table_id = f"chat-rag-{st.session_state.unique_time}"
     
     refined_questions = refine_question(question)
@@ -175,7 +175,7 @@ def main():
             text-align: center;
             text-decoration: none;
             color: #ffffff;
-            background-color: #FF0000;
+            background-color: #FF0000;  /* Red color */
             border-radius: 5px;
             display: block;
             text-align: center;
@@ -186,16 +186,16 @@ def main():
             unsafe_allow_html=True
         )
         st.header("🔧 Settings")
-        api_key = st.text_input('🔑 JamAI API KEY', type='password', value=st.session_state.api_key)
+        token = st.text_input('🔑 JamAI Token', type='password', value=st.session_state.token)  # Changed to token
         project_id = st.text_input('📌 Project ID', value=st.session_state.project_id)
 
-        if api_key and project_id:
-            st.session_state.api_key = api_key
+        if token and project_id:
+            st.session_state.token = token
             st.session_state.project_id = project_id
             st.session_state.logged_in = True
             st.success(f"✅ Logged in as **{st.session_state.project_id}**")
         else:
-            st.warning("🔒 Please enter your API Key and Project ID.")
+            st.warning("🔒 Please enter your Token and Project ID.")
 
         # Upload Medical Report Button
         file_upload = st.file_uploader("📂 Upload Medical Report", type=["pdf"])
@@ -205,7 +205,7 @@ def main():
             elif not file_upload:
                 st.warning("⚠️ Please upload a PDF file.")
             else:
-                jamai = JamAI(api_key=st.session_state.api_key, project_id=st.session_state.project_id)
+                jamai = JamAI(api_key=st.session_state.token, project_id=st.session_state.project_id)  # Use token
                 if not st.session_state.knowledge_table_id:
                     st.session_state.knowledge_table_id = create_knowledge_base(jamai, file_upload)
                 if st.session_state.knowledge_table_id:
