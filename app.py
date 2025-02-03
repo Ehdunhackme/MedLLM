@@ -139,6 +139,27 @@ def main():
 
     # Sidebar for configuration
     with st.sidebar:
+        st.image("additional_resources/Jamai-Long-Black-Main.icuEAbYB.svg")
+        st.markdown(
+            """
+            <a href="https://cloud.jamaibase.com/" style="
+            display: inline-block;
+            padding: 10px 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            color: #ffffff;
+            background-color: #007bff;
+            border-radius: 5px;
+            display: block;
+            text-align: center;
+            ">
+            🔑 Login to JamAI
+            </a>
+            """,
+            unsafe_allow_html=True
+        )
         st.header("🔧 Settings")
         api_key = st.text_input('🔑 JamAI API KEY', type='password', value=st.session_state.api_key)
         project_id = st.text_input('📌 Project ID', value=st.session_state.project_id)
