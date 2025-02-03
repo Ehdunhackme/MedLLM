@@ -4,6 +4,8 @@
 
 MedLLM is a chatbot built using Streamlit and JamAI that allows users to interact with uploaded medical PDFs, querying and analyzing their medical report.
 
+Chatbot Link: https://medllm.streamlit.app/
+
 ## Features
 - Upload PDF medical reports to create a Knowledge Base.
 - Ask questions and receive answers based on your uploaded report.
