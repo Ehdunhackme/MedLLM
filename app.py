@@ -16,7 +16,8 @@ def initialize_session_state():
         "temperature": 0.3,
         "top_p": 0.7,
         "max_tokens": 496,
-        "knowledge_table_id": None
+        "knowledge_table_id": None,
+        "logged_in": False  # Add logged_in status
     }
     for key, value in defaults.items():
         if key not in st.session_state:
