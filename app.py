@@ -11,7 +11,7 @@ def initialize_session_state():
         "chat_history": [],
         "token": "",  
         "project_id": "",
-        "model": "ellm/Qwen/Qwen2-7B-Instruct",  # Default model, can be changed later
+        "model": "ellm/meta-llama/Llama-3.1-8B-Instruct",  # Default model, can be changed later
         "k": 5,
         "temperature": 0.3,
         "top_p": 0.7,
