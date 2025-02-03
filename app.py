@@ -9,9 +9,9 @@ def initialize_session_state():
         "unique_time": time.time(),
         "knowledge_base_exist": False,
         "chat_history": [],
-        "token": "",  # Change to 'token' instead of 'api_key'
+        "token": "",  # Using token instead of api_key
         "project_id": "",
-        "model": "ellm/Qwen/Qwen2-7B-Instruct",
+        "model": "ellm/Qwen/Qwen2-7B-Instruct",  # Default model, can be changed later
         "k": 5,
         "temperature": 0.3,
         "top_p": 0.7,
@@ -25,46 +25,69 @@ def initialize_session_state():
 
 # Function to clear credentials
 def clear_credentials():
-    st.session_state.token = ""  # Clear token instead of api_key
+    st.session_state.token = ""  # Clear token
     st.session_state.project_id = ""
     st.session_state.unique_time = time.time()  # reset the unique time
     st.session_state.logged_in = False  # reset logged in status
 
-# Multi-query refinement for deeper analysis
-def refine_question(question):
-    return [
-        f"What medical conditions could be associated with: {question}?",
-        f"What lab tests or imaging scans are recommended for: {question}?",
-        f"What are the treatment options for conditions related to: {question}?"
-    ]
-
-# Function to ask a question using JamAI chat table
-def ask_question(question):
-    jamai = JamAI(api_key=st.session_state.token, project_id=st.session_state.project_id)  # Use token
-    table_id = f"chat-rag-{st.session_state.unique_time}"
-    
-    refined_questions = refine_question(question)
-    responses = []
-
-    for refined_q in refined_questions:
-        try:
-            completion = jamai.table.add_table_rows(
-                table_type=p.TableType.chat,
-                request=p.RowAddRequest(
-                    table_id=table_id,
-                    data=[dict(User=refined_q)],
-                    stream=True,
-                ),
+# Function to create chat table
+def create_chat_table(jamai, knowledge_simple):
+    try:
+        with st.spinner("Creating Chat Table..."):
+            table = jamai.create_chat_table(
+                p.ChatTableSchemaCreate(
+                    id=f"chat-rag-{st.session_state.unique_time}",
+                    cols=[
+                        p.ColumnSchemaCreate(id="User", dtype="str"),
+                        p.ColumnSchemaCreate(
+                            id="AI",
+                            dtype="str",
+                            gen_config=p.ChatRequest(
+                                model=st.session_state.model,  
+                                messages=[p.ChatEntry.system("You are an advanced medical AI specializing in clinical report analysis. "
+                                        "Provide detailed explanations, potential diagnoses, statistical probabilities, "
+                                        "comparisons with known medical conditions, and possible follow-up tests or treatments. "
+                                        "Cite sources where relevant and summarize key takeaways concisely.")],
+                                rag_params=p.RAGParams(
+                                    table_id=knowledge_simple,
+                                    k=st.session_state.k,
+                                ),
+                                temperature=st.session_state.temperature,
+                                top_p=st.session_state.top_p,
+                                max_tokens=st.session_state.max_tokens,
+                            ).model_dump(),
+                        ),
+                    ],
+                )
             )
-            full_response = ""
-            for chunk in completion:
-                if chunk.output_column_name == "AI":
-                    full_response += chunk.text
-            responses.append(full_response)
-        except Exception as e:
-            responses.append(f"Error fetching response: {e}")
+        st.success("Successfully created Chat Table")
+    except Exception as e:
+        clear_credentials()
+        st.warning("An error occurred. Please check your credentials and try again.")
 
-    return "\n\n".join(responses)  # Returns a well-rounded answer
+# Function to ask a question with improved streaming output
+def ask_question(question):
+    jamai = JamAI(api_key=st.session_state.token, project_id=st.session_state.project_id)
+    
+    completion = jamai.add_table_rows(
+        "chat",
+        p.RowAddRequest(
+            table_id=f"chat-rag-{st.session_state.unique_time}",
+            data=[dict(User=question)],
+            stream=True,
+        ),
+    )
+    
+    full_response = ""
+
+    for chunk in completion:
+        if chunk.output_column_name != "AI":
+            continue
+        if isinstance(chunk, p.GenTableStreamReferences):
+            pass
+        else:
+            full_response += chunk.text
+            yield full_response
 
 # Function to create knowledge base
 def create_knowledge_base(jamai, file_upload):
@@ -82,18 +105,18 @@ def create_knowledge_base(jamai, file_upload):
         st.success("Successfully created Knowledge Base")
 
         # Step 2: Save the uploaded PDF locally before uploading it to the knowledge base
-        current_dir = os.path.dirname(os.path.abspath(__file__))  # Get the current working directory
-        file_path = os.path.join(current_dir, file_upload.name)  # Full path for saving the file
+        current_dir = os.path.dirname(os.path.abspath(__file__)) 
+        file_path = os.path.join(current_dir, file_upload.name)  
         
         with open(file_path, "wb") as f:
-            f.write(file_upload.read())  # Write the uploaded file content to the file system
+            f.write(file_upload.read())  
         
         # Step 3: Upload the file to the JamAI knowledge base
         with st.spinner("Uploading PDF to Knowledge Base..."):
             response = jamai.upload_file(
                 p.FileUploadRequest(
-                    file_path=file_path,  # Path to the file to be uploaded
-                    table_id=knowledge_simple,  # The knowledge table where the file will be associated
+                    file_path=file_path,  
+                    table_id=knowledge_simple,  
                 )
             )
             if response.ok:
@@ -113,48 +136,8 @@ def create_knowledge_base(jamai, file_upload):
 
     except Exception as e:
         st.warning(f"An error occurred during the knowledge base creation: {e}")
-        # Clear sensitive session state in case of error
         clear_credentials()
         return None
-
-# Function to create chat table
-def create_chat_table(jamai, knowledge_table_id):
-    try:
-        with st.spinner("Creating Chat Table..."):
-            jamai.create_chat_table(
-                p.ChatTableSchemaCreate(
-                    id=f"chat-rag-{st.session_state.unique_time}",
-                    cols=[ 
-                        p.ColumnSchemaCreate(id="User", dtype="str"),
-                        p.ColumnSchemaCreate(
-                            id="AI",
-                            dtype="str",
-                            gen_config=p.ChatRequest(
-                                model=st.session_state.model,
-                                messages=[ 
-                                    p.ChatEntry.system(
-                                        "You are an advanced medical AI specializing in clinical report analysis. "
-                                        "Provide detailed explanations, potential diagnoses, statistical probabilities, "
-                                        "comparisons with known medical conditions, and possible follow-up tests or treatments. "
-                                        "Cite sources where relevant and summarize key takeaways concisely."
-                                    )
-                                ],
-                                rag_params=p.RAGParams(
-                                    table_id=knowledge_table_id,
-                                    k=st.session_state.k,
-                                ),
-                                temperature=st.session_state.temperature,
-                                top_p=st.session_state.top_p,
-                                max_tokens=st.session_state.max_tokens,
-                            ).model_dump(),
-                        ),
-                    ],
-                )
-            )
-        st.success("Successfully created Chat Table")
-    except Exception as e:
-        st.warning(f"An error occurred while creating the chat table: {e}")
-        clear_credentials()
 
 # Main app function
 def main():
