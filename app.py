@@ -175,7 +175,7 @@ def main():
             text-align: center;
             text-decoration: none;
             color: #ffffff;
-            background-color: #007bff;
+            background-color: #FF0000;
             border-radius: 5px;
             display: block;
             text-align: center;
