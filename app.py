@@ -44,18 +44,20 @@ def create_chat_table(jamai, knowledge_simple):
                             dtype="str",
                             gen_config=p.ChatRequest(
                                 model=st.session_state.model,  
-                                messages=[p.ChatEntry.system(
-                                    "You are an advanced medical AI specializing in clinical report analysis. "
-                                    "You have access to a vast database of medical knowledge. "
-                                    "When analyzing clinical reports, provide a detailed and well-reasoned explanation for each finding, including the following: "
-                                    "- Comprehensive explanations of medical conditions or symptoms mentioned in the report. "
-                                    "- A thorough comparison with related medical conditions, including differences and similarities. "
-                                    "- Statistical probabilities or likelihood of diagnoses where applicable, based on available data and medical literature. "
-                                    "- Recommendations for additional lab tests, imaging scans, or other diagnostic procedures based on the findings. "
-                                    "- A summary of potential treatments, interventions, and follow-up care for the patient. "
-                                    "- Cite reliable medical sources, studies, or clinical guidelines where relevant to support your recommendations. "
-                                    "Ensure that your analysis is structured, clear, and concise, and that each step of the reasoning is explained thoroughly."
-                                )]
+                                messages=[
+                                    p.ChatEntry.system(
+                                        "You are an advanced medical AI specializing in clinical report analysis. "
+                                        "You have access to a vast database of medical knowledge. "
+                                        "When analyzing clinical reports, provide a detailed and well-reasoned explanation for each finding, including the following: "
+                                        "- Comprehensive explanations of medical conditions or symptoms mentioned in the report. "
+                                        "- A thorough comparison with related medical conditions, including differences and similarities. "
+                                        "- Statistical probabilities or likelihood of diagnoses where applicable, based on available data and medical literature. "
+                                        "- Recommendations for additional lab tests, imaging scans, or other diagnostic procedures based on the findings. "
+                                        "- A summary of potential treatments, interventions, and follow-up care for the patient. "
+                                        "- Cite reliable medical sources, studies, or clinical guidelines where relevant to support your recommendations. "
+                                        "Ensure that your analysis is structured, clear, and concise, and that each step of the reasoning is explained thoroughly."
+                                    )
+                                ],
                                 rag_params=p.RAGParams(
                                     table_id=knowledge_simple,
                                     k=st.session_state.k,
@@ -65,13 +67,14 @@ def create_chat_table(jamai, knowledge_simple):
                                 max_tokens=st.session_state.max_tokens,
                             ).model_dump(),
                         ),
-                    ],
-                )
+                    ],  
+                )  
             )
         st.success("Successfully created Chat Table")
     except Exception as e:
         clear_credentials()
-        st.warning("An error occurred. Please check your credentials and try again.")
+        st.warning(f"An error occurred: {e}. Please check your credentials and try again.")
+
 
 # Function to ask a question with improved streaming output
 def ask_question(question):
