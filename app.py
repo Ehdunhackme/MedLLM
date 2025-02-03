@@ -9,7 +9,7 @@ def initialize_session_state():
         "unique_time": time.time(),
         "knowledge_base_exist": False,
         "chat_history": [],
-        "token": "",  # Using token instead of api_key
+        "token": "",  
         "project_id": "",
         "model": "ellm/Qwen/Qwen2-7B-Instruct",  # Default model, can be changed later
         "k": 5,
@@ -25,10 +25,10 @@ def initialize_session_state():
 
 # Function to clear credentials
 def clear_credentials():
-    st.session_state.token = ""  # Clear token
+    st.session_state.token = ""  
     st.session_state.project_id = ""
-    st.session_state.unique_time = time.time()  # reset the unique time
-    st.session_state.logged_in = False  # reset logged in status
+    st.session_state.unique_time = time.time()  
+    st.session_state.logged_in = False  
 
 # Function to create chat table
 def create_chat_table(jamai, knowledge_simple):
@@ -44,10 +44,18 @@ def create_chat_table(jamai, knowledge_simple):
                             dtype="str",
                             gen_config=p.ChatRequest(
                                 model=st.session_state.model,  
-                                messages=[p.ChatEntry.system("You are an advanced medical AI specializing in clinical report analysis. "
-                                        "Provide detailed explanations, potential diagnoses, statistical probabilities, "
-                                        "comparisons with known medical conditions, and possible follow-up tests or treatments. "
-                                        "Cite sources where relevant and summarize key takeaways concisely.")],
+                                messages=[p.ChatEntry.system(
+                                    "You are an advanced medical AI specializing in clinical report analysis. "
+                                    "You have access to a vast database of medical knowledge. "
+                                    "When analyzing clinical reports, provide a detailed and well-reasoned explanation for each finding, including the following: "
+                                    "- Comprehensive explanations of medical conditions or symptoms mentioned in the report. "
+                                    "- A thorough comparison with related medical conditions, including differences and similarities. "
+                                    "- Statistical probabilities or likelihood of diagnoses where applicable, based on available data and medical literature. "
+                                    "- Recommendations for additional lab tests, imaging scans, or other diagnostic procedures based on the findings. "
+                                    "- A summary of potential treatments, interventions, and follow-up care for the patient. "
+                                    "- Cite reliable medical sources, studies, or clinical guidelines where relevant to support your recommendations. "
+                                    "Ensure that your analysis is structured, clear, and concise, and that each step of the reasoning is explained thoroughly."
+                                )]
                                 rag_params=p.RAGParams(
                                     table_id=knowledge_simple,
                                     k=st.session_state.k,
@@ -97,8 +105,8 @@ def create_knowledge_base(jamai, file_upload):
             knowledge_table = jamai.create_knowledge_table(
                 p.KnowledgeTableSchemaCreate(
                     id=knowledge_simple,
-                    cols=[],  # Define the columns here if needed
-                    embedding_model="ellm/BAAI/bge-m3",  # Embedding model used for semantic search
+                    cols=[],  
+                    embedding_model="ellm/BAAI/bge-m3",  
                 )
             )
         
