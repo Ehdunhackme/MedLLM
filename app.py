@@ -23,6 +23,13 @@ def initialize_session_state():
         if key not in st.session_state:
             st.session_state[key] = value
 
+# Function to clear credentials
+def clear_credentials():
+    st.session_state.api_key = ""
+    st.session_state.project_id = ""
+    st.session_state.unique_time = time.time()  # reset the unique time
+    st.session_state.logged_in = False  # reset logged in status
+
 # Multi-query refinement for deeper analysis
 def refine_question(question):
     return [
@@ -57,41 +64,57 @@ def ask_question(question):
         except Exception as e:
             responses.append(f"Error fetching response: {e}")
 
-    yield "\n\n".join(responses)  # Returns a well-rounded answer
+    return "\n\n".join(responses)  # Returns a well-rounded answer
 
-# Function to create knowledge base and upload medical reports
+# Function to create knowledge base
 def create_knowledge_base(jamai, file_upload):
     try:
         with st.spinner("Creating Knowledge Base..."):
-            knowledge_table_id = f"knowledge-table-{st.session_state.unique_time}"
-            jamai.create_knowledge_table(
+            knowledge_simple = f"knowledge-simple-{st.session_state.unique_time}"
+            knowledge_table = jamai.create_knowledge_table(
                 p.KnowledgeTableSchemaCreate(
-                    id=knowledge_table_id,
-                    cols=[],
-                    embedding_model="ellm/BAAI/bge-m3",
+                    id=knowledge_simple,
+                    cols=[],  # Define the columns here if needed
+                    embedding_model="ellm/BAAI/bge-m3",  # Embedding model used for semantic search
                 )
             )
-
+        
         st.success("Successfully created Knowledge Base")
 
-        # Save uploaded PDF locally
-        file_path = os.path.join(os.getcwd(), "uploaded_medical_report.pdf")
+        # Step 2: Save the uploaded PDF locally before uploading it to the knowledge base
+        current_dir = os.path.dirname(os.path.abspath(__file__))  # Get the current working directory
+        file_path = os.path.join(current_dir, file_upload.name)  # Full path for saving the file
+        
         with open(file_path, "wb") as f:
-            f.write(file_upload.read())
-
+            f.write(file_upload.read())  # Write the uploaded file content to the file system
+        
+        # Step 3: Upload the file to the JamAI knowledge base
         with st.spinner("Uploading PDF to Knowledge Base..."):
-            response = jamai.file.upload_file(file_path)
-            assert response.ok, "File upload failed!"
+            response = jamai.upload_file(
+                p.FileUploadRequest(
+                    file_path=file_path,  # Path to the file to be uploaded
+                    table_id=knowledge_simple,  # The knowledge table where the file will be associated
+                )
+            )
+            if response.ok:
+                st.success("Successfully uploaded PDF to Knowledge Base!")
+            else:
+                st.error("File upload failed. Please try again.")
+                return None
 
-        st.success("Successfully uploaded PDF to Knowledge Base!")
+        # Step 4: Remove the file locally after upload
+        os.remove(file_path)
+
+        # Update the session state to reflect that the knowledge base exists
         st.session_state.knowledge_base_exist = True
-        st.session_state.knowledge_table_id = knowledge_table_id
+        st.session_state.knowledge_table_id = knowledge_simple
 
-        os.remove(file_path)  # Clean up local file
-        return knowledge_table_id
+        return knowledge_simple
 
     except Exception as e:
-        st.warning(f"An error occurred while uploading the PDF: {e}")
+        st.warning(f"An error occurred during the knowledge base creation: {e}")
+        # Clear sensitive session state in case of error
+        clear_credentials()
         return None
 
 # Function to create chat table
@@ -101,14 +124,14 @@ def create_chat_table(jamai, knowledge_table_id):
             jamai.create_chat_table(
                 p.ChatTableSchemaCreate(
                     id=f"chat-rag-{st.session_state.unique_time}",
-                    cols=[
+                    cols=[ 
                         p.ColumnSchemaCreate(id="User", dtype="str"),
                         p.ColumnSchemaCreate(
                             id="AI",
                             dtype="str",
                             gen_config=p.ChatRequest(
                                 model=st.session_state.model,
-                                messages=[
+                                messages=[ 
                                     p.ChatEntry.system(
                                         "You are an advanced medical AI specializing in clinical report analysis. "
                                         "Provide detailed explanations, potential diagnoses, statistical probabilities, "
@@ -131,6 +154,7 @@ def create_chat_table(jamai, knowledge_table_id):
         st.success("Successfully created Chat Table")
     except Exception as e:
         st.warning(f"An error occurred while creating the chat table: {e}")
+        clear_credentials()
 
 # Main app function
 def main():
