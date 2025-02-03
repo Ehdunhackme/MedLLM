@@ -43,7 +43,7 @@ def create_chat_table(jamai, knowledge_simple):
                             id="AI",
                             dtype="str",
                             gen_config=p.ChatRequest(
-                                model=st.session_state.model,  
+                                model="ellm/meta-llama/Llama-3.1-8B-Instruct",  # Updated model to Meta Llama 3.1 (8B)
                                 messages=[
                                     p.ChatEntry.system(
                                         "You are an advanced medical AI specializing in clinical report analysis. "
