@@ -108,26 +108,26 @@ def create_knowledge_base(jamai, file_upload):
             knowledge_table = jamai.create_knowledge_table(
                 p.KnowledgeTableSchemaCreate(
                     id=knowledge_simple,
-                    cols=[],  
-                    embedding_model="ellm/BAAI/bge-m3",  
+                    cols=[],  # Define the columns here if needed
+                    embedding_model="ellm/BAAI/bge-m3",  # Embedding model used for semantic search
                 )
             )
         
         st.success("Successfully created Knowledge Base")
 
         # Step 2: Save the uploaded PDF locally before uploading it to the knowledge base
-        current_dir = os.path.dirname(os.path.abspath(__file__)) 
-        file_path = os.path.join(current_dir, file_upload.name)  
+        current_dir = os.path.dirname(os.path.abspath(__file__))  # Get the current working directory
+        file_path = os.path.join(current_dir, file_upload.name)  # Full path for saving the file
         
         with open(file_path, "wb") as f:
-            f.write(file_upload.read())  
+            f.write(file_upload.read())  # Write the uploaded file content to the file system
         
         # Step 3: Upload the file to the JamAI knowledge base
         with st.spinner("Uploading PDF to Knowledge Base..."):
             response = jamai.upload_file(
                 p.FileUploadRequest(
-                    file_path=file_path,  
-                    table_id=knowledge_simple,  
+                    file_path=file_path,  # Path to the file to be uploaded
+                    table_id=knowledge_simple,  # Pass the table_id here
                 )
             )
             if response.ok:
